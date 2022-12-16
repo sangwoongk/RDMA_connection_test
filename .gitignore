@@ -1,3 +1,5 @@
 server_scp.sh
 .vscode/
 *.o
+test
+pickme

@@ -1,5 +1,5 @@
-# RDMA connection test
-Source code to check RDMA connection.
+# RDMA event test
+Source code to understand event-based RDMA.
 
 ## Setup and prerequisites
 - Mellanox HCAs

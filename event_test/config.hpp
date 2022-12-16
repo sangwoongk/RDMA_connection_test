@@ -17,7 +17,6 @@ std::string get_self_ip();
 #define	SOCK_PORT_START	20000
 #define	IB_SL	0
 #define	IB_MTU	IBV_MTU_4096
-#define PER_INV_IB_BUF_SIZE	2048
 #define	INV_SOCK_BUF_SIZE	10
 #define	LOCAL_OW_PORT	7778
 // #define	REMOTE_OW_PORT	8889
@@ -29,6 +28,10 @@ std::string get_self_ip();
 #define	WRITE_SIZE	46
 #define	SET_SIZE	10
 #define	MSG_SIZE	512
+#define	NUM_BUF_SLOT	4
+#define PER_INV_BUF_SIZE	(MSG_SIZE * NUM_BUF_SLOT)
+const int	PER_INV_IB_BUF_SIZE	= get_all_invokers().size() * PER_INV_BUF_SIZE;
+// #define PER_INV_IB_BUF_SIZE	2048
 
 #define	CACHE_ENTRY_NUM	65536	// Default: 2^16
 // #define	CACHE_ENTRY_NUM 4096	// 2^12

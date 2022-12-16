@@ -37,8 +37,9 @@ struct ib_res {
 	struct ibv_qp **qp;
 	struct ibv_port_attr port_attr;
 	struct ibv_device_attr dev_attr;
-	struct ibv_comp_channel **channel;
 	union ibv_gid gid;
+	struct ibv_comp_channel *channel;
+	void *ev_ctx;
 
 	char *cache_buf;
 	char *sched_buf;

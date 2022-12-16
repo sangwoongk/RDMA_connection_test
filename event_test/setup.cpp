@@ -83,28 +83,23 @@ struct ib_res setup_ib(int peer_num) {
 	}
 
 	res.cq = new ibv_cq*[peer_num];
-	res.channel = new ibv_comp_channel*[peer_num];
+	res.channel = ibv_create_comp_channel(res.ctx);
+	if (res.channel == NULL) {
+		error("Failed to allocate comp channel");
+	}
+	res.ev_ctx = NULL;
 
 	for (int i = 0; i < peer_num; i++) {
-		res.cq[i] = ibv_create_cq(res.ctx, res.dev_attr.max_cqe, NULL, NULL, 0);
-		/*
-		res.channel = ibv_create_comp_channel(res.ctx);
-		if (res.channel == NULL) {
-			error("Failed to allocate comp channel");
-		}
-		res.cq[i] = ibv_create_cq(res.ctx, res.dev_attr.max_cqe, NULL, res.channel, 0);
-		*/
-
+		// res.cq[i] = ibv_create_cq(res.ctx, res.dev_attr.max_cqe, NULL, NULL, 0);
+		res.cq[i] = ibv_create_cq(res.ctx, res.dev_attr.max_cqe, res.ev_ctx, res.channel, 0);
 		if (res.cq[i] == NULL) {
 			error("Failed to create cq");
 		}
 
-		/*
 		ret = ibv_req_notify_cq(res.cq[i], 0);
 		if (ret != 0) {
 			error("Failed to request CQ notification");
 		}
-		*/
 	}
 
 	std::vector<struct ibv_qp_init_attr> qp_init_attr;

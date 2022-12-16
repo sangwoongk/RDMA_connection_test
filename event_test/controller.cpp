@@ -3,6 +3,7 @@
 #include "ib.hpp"
 #include "config.hpp"
 #include "debug.hpp"
+#include "utils.hpp"
 // #include "log.h"
 #include <unistd.h>
 #include <thread>
@@ -113,20 +114,24 @@ int Controller::rdma_write_while(int thread_id) {
 	while(!stop) {
 		switch(imm) {
 			case 0:
-				strcpy(buf, "hyosangkim");
+				strcpy(buf, "hyosang");
 				break;
 			case 1:
-				strcpy(buf, "hassium");
+				strcpy(buf, "kim");
 				break;
 			case 2:
+				strcpy(buf, "hassium");
+				break;
+			case 3:
 				strcpy(buf, "ohmuro");
 				break;
 			default:
 				break;
 		}
 
+		uint32_t encoded_imm = encode_imm(0, imm);
 		uint64_t write_ptr = write_raddr + MSG_SIZE * imm;
-		int ret = post_write_imm(MSG_SIZE, lkey, write_rkey, write_ptr, qp, buf, imm);
+		int ret = post_write_imm(MSG_SIZE, lkey, write_rkey, write_ptr, qp, buf, encoded_imm);
 		// int ret = post_write_imm(MSG_SIZE, lkey, write_rkey, write_raddr, qp, buf, imm);
 		if (ret != 0) {
 			error("write failure");
@@ -136,7 +141,7 @@ int Controller::rdma_write_while(int thread_id) {
 		if (n < 0) {
 			error("Failed to poll cq");
 		}
-		imm = (imm + 1) % 3;
+		imm = (imm + 1) % NUM_BUF_SLOT;
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}

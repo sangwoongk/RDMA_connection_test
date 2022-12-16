@@ -146,26 +146,6 @@ int post_write_imm(uint32_t req_size, uint32_t lkey, uint32_t rkey, uint64_t rad
 	return ret;
 }
 
-int post_recv(uint32_t req_size, uint32_t lkey, uint64_t wr_id, struct ibv_qp *qp, char *buf) {
-	struct ibv_recv_wr *bad;
-	struct ibv_sge list;
-	struct ibv_recv_wr recv_wr;
-
-	memset(&list, 0, sizeof(list));
-	memset(&recv_wr, 0, sizeof(recv_wr));
-
-	list.addr = (uintptr_t)buf;
-	list.length = req_size;
-	list.lkey = lkey;
-
-	recv_wr.wr_id = wr_id;
-	recv_wr.sg_list = &list;
-	recv_wr.num_sge = 1;
-	recv_wr.next = NULL;
-
-	return ibv_post_recv(qp, &recv_wr, &bad);
-}
-
 int post_read(uint32_t req_size, uint32_t lkey, uint32_t rkey, uint64_t raddr, struct ibv_qp* qp, char *buf) {
 	struct ibv_send_wr *bad;
 	struct ibv_send_wr send_wr;
@@ -188,4 +168,24 @@ int post_read(uint32_t req_size, uint32_t lkey, uint32_t rkey, uint64_t raddr, s
 	int ret = ibv_post_send(qp, &send_wr, &bad);
 
 	return ret;
+}
+
+int post_recv(uint32_t req_size, uint32_t lkey, uint64_t wr_id, struct ibv_qp *qp, char *buf) {
+	struct ibv_recv_wr *bad;
+	struct ibv_sge list;
+	struct ibv_recv_wr recv_wr;
+
+	memset(&list, 0, sizeof(list));
+	memset(&recv_wr, 0, sizeof(recv_wr));
+
+	list.addr = (uintptr_t)buf;
+	list.length = req_size;
+	list.lkey = lkey;
+
+	recv_wr.wr_id = wr_id;
+	recv_wr.sg_list = &list;
+	recv_wr.num_sge = 1;
+	recv_wr.next = NULL;
+
+	return ibv_post_recv(qp, &recv_wr, &bad);
 }

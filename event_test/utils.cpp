@@ -79,3 +79,15 @@ int get_random_int(int min, int max) {
 
 	return dis(gen);
 }
+
+uint32_t encode_imm(int inv_id, int buf_index) {
+	uint32_t ret = inv_id * PADDING + buf_index;
+	return ret;
+}
+
+std::pair<int, int> decode_imm(uint32_t imm) {
+	int inv_id = imm / PADDING;
+	int buf_index = imm % PADDING;
+
+	return {inv_id, buf_index};
+}

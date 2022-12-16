@@ -110,7 +110,101 @@ void Invoker::check_write() {
 
 }
 
+void Invoker::ev_check_write() {
+	struct ibv_qp *qp = res.qp[0];	// TODO: should change 0 to inv_id
+	// struct ibv_cq *cq = res.cq[0];
+	struct ibv_wc *wc = nullptr;
+	uint32_t read_rkey = res.cache_rkey[0];
+	uint64_t read_raddr = res.cache_raddr[0];
+	uint32_t lkey = res.cache_mr->lkey;
+	char *buf_base = res.cache_buf;
+
+	struct ibv_cq *ev_cq = nullptr;
+	void *ev_ctx = nullptr;
+
+	int ret = 0;
+	int num_wc = 20;
+	wc = (struct ibv_wc*)calloc(num_wc, sizeof(struct ibv_wc));
+
+	for(int i = 0; i < 1000; i++) {
+		ret = post_recv(0, lkey, (uint64_t)nullptr, qp, nullptr);
+		if (ret != 0) {
+			error("Failed to post recv");
+		}
+	}
+
+	while(1) {
+		ret = ibv_get_cq_event(res.channel, &ev_cq, &ev_ctx);
+		if (ret != 0) {
+			error("Failed to get CQ event");
+		}
+		ibv_ack_cq_events(ev_cq, 1);
+
+		ret = ibv_req_notify_cq(ev_cq, 0);
+		if (ret != 0) {
+			error("Failed to request CQ notification");
+		}
+
+		int n = 0;
+		do {
+			n = ibv_poll_cq(ev_cq, num_wc, wc);
+			// n = ibv_poll_cq(cq, num_wc, wc);
+			if (n < 0) {
+				error("Failed to poll cq");
+			}
+			else if (n == 0) {
+				continue;
+			}
+
+			for (int i = 0; i < n; i++) {
+				if (wc[i].status != IBV_WC_SUCCESS) {
+					error("WC failed");
+				} 
+
+				switch(wc[i].opcode) {
+					case IBV_WC_RECV_RDMA_WITH_IMM: {
+						uint32_t recv_imm = ntohl(wc[i].imm_data);
+						auto decoded = decode_imm(recv_imm);
+						int inv_id = decoded.first;
+						int buf_index = decoded.second;
+						char *msg_ptr = buf_base + PER_INV_BUF_SIZE * inv_id + MSG_SIZE * buf_index;
+	
+						printf("============\n");
+						printf("[BUF] %s\n[INV_ID] %d\n[INDEX] %d\n", msg_ptr, inv_id, buf_index);
+						strcpy(msg_ptr, "initinitinit");
+						printf("[flushed] %s\n", msg_ptr);
+						printf("============\n");
+
+						ret = post_recv(0, lkey, (uint64_t)nullptr, qp, nullptr);
+						if (ret != 0) {
+							error("Failed to post recv");
+						}
+
+						break;
+					}	
+					case IBV_WC_RECV: {
+						printf("============\n");
+						printf("Normal recv!\n");
+						printf("============\n");
+						std::this_thread::sleep_for(std::chrono::seconds(20));
+						break;
+					}
+					default: {
+						printf("opcode: %d\n", wc[i].opcode);
+						break;
+					}
+				}
+
+			}
+
+		} while(n);
+	}
+
+
+}
+
 void Invoker::test_skeleton() {
+	/*
 	struct ibv_qp *qp = res.qp[0];
 	struct ibv_cq *cq = res.cq[0];
 	struct ibv_wc *wc = nullptr;
@@ -118,11 +212,11 @@ void Invoker::test_skeleton() {
 	uint64_t read_raddr = res.cache_raddr[0];
 	uint32_t lkey = res.cache_mr->lkey;
 
-	char *buf = res.cache_buf;
 	int num_wc = 20;
-
 	wc = (struct ibv_wc*)calloc(num_wc, sizeof(struct ibv_wc));
+	*/
 
+	char *buf = res.cache_buf;
 	while(1) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		printf("============\n");
@@ -136,7 +230,8 @@ void Invoker::test_skeleton() {
 
 int Invoker::run() {
 	// std::thread th(&Invoker::export_mem, this);
-	std::thread th(&Invoker::check_write, this);
+	// std::thread th(&Invoker::check_write, this);
+	std::thread th(&Invoker::ev_check_write, this);
 	th.join();
 
 	this->clean_invoker();

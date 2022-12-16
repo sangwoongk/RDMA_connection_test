@@ -4,7 +4,7 @@ INCLUDES=
 LDFLAGS=-fsanitize=address
 LIBS=-pthread -lrdmacm -libverbs -lboost_iostreams -lboost_program_options
 
-SRCS=main.cpp config.cpp setup.cpp sock.cpp controller.cpp invoker.cpp ib.cpp
+SRCS=main.cpp config.cpp setup.cpp sock.cpp controller.cpp invoker.cpp ib.cpp utils.cpp
 OBJS=$(SRCS:.cpp=.o)
 PROG=test
 

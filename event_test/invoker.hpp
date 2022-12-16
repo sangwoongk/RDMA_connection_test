@@ -21,9 +21,8 @@ class Invoker {
     // int server_sock;
     std::vector<int> server_socks;
     std::vector<int> inv_sockfd;
-    std::vector<int> ow_sockfd;
     struct ib_res res;
-    char prev_cont_msg[PER_INV_IB_BUF_SIZE];
+    char *prev_cont_msg;
     int peer_num;
     int total_invoker_num;
 
@@ -51,6 +50,7 @@ class Invoker {
     void export_mem();
     void test_skeleton();
     void check_write();
+    void ev_check_write();
     int run();
 
     void clean_invoker();
